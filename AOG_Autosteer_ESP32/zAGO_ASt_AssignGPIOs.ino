@@ -53,13 +53,13 @@ void assignGPIOs_start_extHardware() {
 		break;
 
 	case 1:	// BNO055 init
-		BNO.init();
-		delay(10);
-		BNO.setExtCrystalUse(true);   //use external 32K crystal
-		//roll no hardware = 8888
-		steerToAOG[9] = 0xB8;
-		steerToAOG[10] = 0x22;
-		roll = 0;
+		// BNO.init();
+		// delay(10);
+		// BNO.setExtCrystalUse(true);   //use external 32K crystal
+		// //roll no hardware = 8888
+		// steerToAOG[9] = 0xB8;
+		// steerToAOG[10] = 0x22;
+		// roll = 0;
 		break;
 
 	case 2://test if CMPS working			
@@ -139,32 +139,32 @@ void assignGPIOs_start_extHardware() {
 
 	if (Set.MMAInstalled == 1)
 	{
-		// MMA8452 (1) Inclinometer
-		if (MMA1C.init()) {
-			delay(10);
+		// // MMA8452 (1) Inclinometer
+		// if (MMA1C.init()) {
+		// 	delay(10);
 
-			MMA1C.setDataRate(MMA_800hz);
-			MMA1C.setRange(MMA_RANGE_8G);
-			MMA1C.setHighPassFilter(false);
-			if (Set.debugmode) { Serial.println("MMA init OK"); }
-		}
-		else { Serial.println("MMA init fails at I2C address 1C!!"); Set.MMAInstalled = 0; }
+		// 	MMA1C.setDataRate(MMA_800hz);
+		// 	MMA1C.setRange(MMA_RANGE_8G);
+		// 	MMA1C.setHighPassFilter(false);
+		// 	if (Set.debugmode) { Serial.println("MMA init OK"); }
+		// }
+		// else { Serial.println("MMA init fails at I2C address 1C!!"); Set.MMAInstalled = 0; }
 	}
 	else if (Set.MMAInstalled == 2)
 	{
-		// MMA8452 (1) Inclinometer
-		if (MMA1D.init()) {
-			delay(10);
-			MMA1D.setDataRate(MMA_800hz);
-			MMA1D.setRange(MMA_RANGE_8G);
-			MMA1D.setHighPassFilter(false);
-			if (Set.debugmode) { Serial.println("MMA init OK"); }
-		}
-		else { Serial.println("MMA init fails at I2C address 1D!!"); Set.MMAInstalled = 0; }
+		// // MMA8452 (1) Inclinometer
+		// if (MMA1D.init()) {
+		// 	delay(10);
+		// 	MMA1D.setDataRate(MMA_800hz);
+		// 	MMA1D.setRange(MMA_RANGE_8G);
+		// 	MMA1D.setHighPassFilter(false);
+		// 	if (Set.debugmode) { Serial.println("MMA init OK"); }
+		// }
+		// else { Serial.println("MMA init fails at I2C address 1D!!"); Set.MMAInstalled = 0; }
 	}
 
 	//ADS1115
-	adc.setSampleRate(ADS1115_REG_CONFIG_DR_128SPS); //128 samples per second
-	adc.setGain(ADS1115_REG_CONFIG_PGA_6_144V);
+	// adc.setSampleRate(ADS1115_REG_CONFIG_DR_128SPS); //128 samples per second
+	// adc.setGain(ADS1115_REG_CONFIG_PGA_6_144V);
 
 }

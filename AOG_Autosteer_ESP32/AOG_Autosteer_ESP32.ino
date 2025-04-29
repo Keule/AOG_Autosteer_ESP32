@@ -197,23 +197,18 @@ byte steerToAOG[14] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 #include "EEPROM.h"
 #include <Update.h>
 #include "Wire.h"
-#include "BNO055_AOG.h"
-#include <Adafruit_BNO08x.h>
-#include "zADS1115.h"
-#include "MMA8452_AOG.h"  //MMA inclinometer
 #include <WiFiUdp.h>
 #include <WebServer.h>
 #include <WiFiClient.h>
 #include <WiFi.h>
 #include <ETH.h>
-//#include <EthernetUdp.h>   
 #include "BNO08x_AOG.h"
 
 // Instances --------------------------------------------------------------------------------------
-ADS1115_lite adc(ADS1115_DEFAULT_ADDRESS);     // Use this for the 16-bit version ADS1115
-MMA8452 MMA1D(0x1D);
-MMA8452 MMA1C(0x1C);
-BNO055 BNO(0X28);	//I2C address selection pin LOW BNO055
+//ADS1115_lite adc(ADS1115_DEFAULT_ADDRESS);     // Use this for the 16-bit version ADS1115
+// MMA8452 MMA1D(0x1D);
+// MMA8452 MMA1C(0x1C);
+// BNO055 BNO(0X28);	//I2C address selection pin LOW BNO055
 BNO080 bno08x;
 WiFiUDP WiFiUDPFromAOG;
 WiFiUDP WiFiUDPToAOG;
@@ -514,15 +509,15 @@ void loop() {
 		//steering position and steer angle
 		switch (Set.WASType) {
 		case 1:  // ADS 1115 single
-			adc.setMux(ADS1115_REG_CONFIG_MUX_SINGLE_0);
-			steeringPosition = adc.getConversion();
-			adc.triggerConversion();
+			// adc.setMux(ADS1115_REG_CONFIG_MUX_SINGLE_0);
+			// steeringPosition = adc.getConversion();
+			// adc.triggerConversion();
 			steeringPosition = steeringPosition >> 1; //divide by 2
 			break;
 		case 2:  // ADS 1115 differential
-			adc.setMux(ADS1115_REG_CONFIG_MUX_DIFF_0_1);
-			adc.triggerConversion();
-			steeringPosition = adc.getConversion();
+			//adc.setMux(ADS1115_REG_CONFIG_MUX_DIFF_0_1);
+			//adc.triggerConversion();
+			//steeringPosition = adc.getConversion();
 			steeringPosition = steeringPosition >> 1; //divide by 2
 			break;
 		default: // directly to arduino
@@ -620,7 +615,7 @@ void loop() {
 		steerToAOG[6] = (byte)(temInt >> 8);
 
 		if (Set.IMUType == 1) {   // Initialize the BNO055 if not done
-			BNO.readIMU();
+			// BNO.readIMU();
 		}
 
 		
@@ -628,56 +623,56 @@ void loop() {
 		{
 			switch (Set.MMAInstalled) {
 			case 1:// MMA8452 Inclinometer (1C) 
-				MMA1C.getRawData(&x_, &y_, &z_);
+				// MMA1C.getRawData(&x_, &y_, &z_);
 
-				if (Set.UseMMA_X_Axis == 1)
-					roll16 = x_; //Conversion uint to int
-				else roll16 = y_;
+				// if (Set.UseMMA_X_Axis == 1)
+				// 	roll16 = x_; //Conversion uint to int
+				// else roll16 = y_;
 
-				if (roll16 > 4200)  roll16 = 4200;
-				if (roll16 < -4200) roll16 = -4200;
-				//rollK = map(roll, -4200, 4200, -960, 960); //16 counts per degree (good for 0 - +/-30 degrees) 
-				roll16 = roll16 >> 3;  //divide by 8  +-525
+				// if (roll16 > 4200)  roll16 = 4200;
+				// if (roll16 < -4200) roll16 = -4200;
+				// //rollK = map(roll, -4200, 4200, -960, 960); //16 counts per degree (good for 0 - +/-30 degrees) 
+				// roll16 = roll16 >> 3;  //divide by 8  +-525
 
-				// limit the differential  
-				diff = roll16 - lastRoll;
-				if (diff > Set.MMA_roll_MAX_STEP) roll16 = lastRoll + Set.MMA_roll_MAX_STEP;
-				else if (diff < -Set.MMA_roll_MAX_STEP) roll16 = lastRoll - Set.MMA_roll_MAX_STEP;
-				lastRoll = roll16;
+				// // limit the differential  
+				// diff = roll16 - lastRoll;
+				// if (diff > Set.MMA_roll_MAX_STEP) roll16 = lastRoll + Set.MMA_roll_MAX_STEP;
+				// else if (diff < -Set.MMA_roll_MAX_STEP) roll16 = lastRoll - Set.MMA_roll_MAX_STEP;
+				// lastRoll = roll16;
 
-				//divide by 2 -268 to +268    -17 to +17 degrees
-				rollMMA = float(roll16) * 0.5;
+				// //divide by 2 -268 to +268    -17 to +17 degrees
+				// rollMMA = float(roll16) * 0.5;
 
-				//if not positive when rolling to the right
-				if (Set.InvertRoll)
-					rollMMA *= -1.0;
+				// //if not positive when rolling to the right
+				// if (Set.InvertRoll)
+				// 	rollMMA *= -1.0;
 
 				break;
 
 			case 2:// MMA8452 Inclinometer (1D)    
-				MMA1D.getRawData(&x_, &y_, &z_);
+				// MMA1D.getRawData(&x_, &y_, &z_);
 
-				if (Set.UseMMA_X_Axis == 1)
-					roll16 = x_; //Conversion uint to int
-				else roll16 = y_;
+				// if (Set.UseMMA_X_Axis == 1)
+				// 	roll16 = x_; //Conversion uint to int
+				// else roll16 = y_;
 
-				if (roll16 > 4200)  roll16 = 4200;
-				if (roll16 < -4200) roll16 = -4200;
-				//rollK = map(roll, -4200, 4200, -960, 960); //16 counts per degree (good for 0 - +/-30 degrees) 
-				roll16 = roll16 >> 3;  //divide by 8  +-525
+				// if (roll16 > 4200)  roll16 = 4200;
+				// if (roll16 < -4200) roll16 = -4200;
+				// //rollK = map(roll, -4200, 4200, -960, 960); //16 counts per degree (good for 0 - +/-30 degrees) 
+				// roll16 = roll16 >> 3;  //divide by 8  +-525
 
-				// limit the differential  
-				diff = roll16 - lastRoll;
-				if (diff > Set.MMA_roll_MAX_STEP) roll16 = lastRoll + Set.MMA_roll_MAX_STEP;
-				else if (diff < -Set.MMA_roll_MAX_STEP) roll16 = lastRoll - Set.MMA_roll_MAX_STEP;
-				lastRoll = roll16;
+				// // limit the differential  
+				// diff = roll16 - lastRoll;
+				// if (diff > Set.MMA_roll_MAX_STEP) roll16 = lastRoll + Set.MMA_roll_MAX_STEP;
+				// else if (diff < -Set.MMA_roll_MAX_STEP) roll16 = lastRoll - Set.MMA_roll_MAX_STEP;
+				// lastRoll = roll16;
 
-				//divide by 2 -268 to +268    -17 to +17 degrees
-				rollMMA = float(roll16) * 0.5;
+				// //divide by 2 -268 to +268    -17 to +17 degrees
+				// rollMMA = float(roll16) * 0.5;
 
-				//if not positive when rolling to the right
-				if (Set.InvertRoll)
-					rollMMA *= -1.0;
+				// //if not positive when rolling to the right
+				// if (Set.InvertRoll)
+				// 	rollMMA *= -1.0;
 				break;
 			}//switch MMA
 
@@ -704,11 +699,11 @@ void loop() {
 			
 			switch (Set.IMUType) {
 			case 1:// BNO055 heading16
-				heading16 = (int)BNO.euler.head;  //heading16 in degrees * 16 from BNO
-				heading = float(heading16) / 16;
-				temInt = int(heading * 10);
-				steerToAOG[8] = temInt >> 8;
-				steerToAOG[7] = byte(temInt);
+				// heading16 = (int)BNO.euler.head;  //heading16 in degrees * 16 from BNO
+				// heading = float(heading16) / 16;
+				// temInt = int(heading * 10);
+				// steerToAOG[8] = temInt >> 8;
+				// steerToAOG[7] = byte(temInt);
 				break;
 
 			case 2://CMPS14			
