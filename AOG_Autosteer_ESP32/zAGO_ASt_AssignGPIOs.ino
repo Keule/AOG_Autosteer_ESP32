@@ -21,11 +21,9 @@ void assignGPIOs_start_extHardware() {
 	pinMode(Set.PWM_PIN, OUTPUT);
 	pinMode(Set.DIR_PIN, OUTPUT);
 	delay(2);
-	ledcSetup(0, Set.PWMOutFrequ, 8);  // PWM Output with channel 0, x kHz, 8-bit resolution (0-255)
-	ledcSetup(1, Set.PWMOutFrequ, 8);  // PWM Output with channel 1, x kHz, 8-bit resolution (0-255)
-	delay(2);
-	ledcAttachPin(Set.PWM_PIN, 0);  // attach PWM PIN to Channel 0
-	ledcAttachPin(Set.DIR_PIN, 1);  // attach PWM PIN to Channel 1
+	ledcAttach(Set.PWM_PIN, Set.PWMOutFrequ, 8);  // attach PWM PIN to Channel 0
+	ledcAttach(Set.DIR_PIN, Set.PWMOutFrequ, 8);  // attach PWM PIN to Channel 1
+
 
 	//if (Set.WASType == 0)  Set.WebIOSteerPosZero = 2048;                //Starting Point with ESP ADC 2048 
 	//if (Set.WASType > 0 && Set.WASType < 3)  Set.WebIOSteerPosZero = 13000;  //with ADS start with 13000  

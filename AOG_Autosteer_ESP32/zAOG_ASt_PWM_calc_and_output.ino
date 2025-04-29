@@ -51,7 +51,10 @@ void motorDrive(void)
     break;
   }
 }
- 
+
+//ledcAttach(Set.PWM_PIN, Set.PWMOutFrequ, 8);  // attach PWM PIN to Channel 0
+//ledcAttach(Set.DIR_PIN, Set.PWMOutFrequ, 8);  // attach PWM PIN to Channel 1
+
 //---------------------------------------------------------------------
 // Used with Cytron MD30C Driver
 // Steering Motor
@@ -60,13 +63,13 @@ void motorDrive(void)
 void motorDrive_Cytron(void) 
   {    
     pwmDisplay = pwmDrive;
-    if (pwmDrive >= 0) ledcWrite(1, 255);  // channel 1 = DIR_PIN  //set the correct direction
+    if (pwmDrive >= 0) ledcWrite(Set.DIR_PIN, 255);  // channel 1 = DIR_PIN  //set the correct direction
     else   
     {
-      ledcWrite(1, 0);  // channel 1 = DIR_PIN 
+      ledcWrite(Set.DIR_PIN, 0);  // channel 1 = DIR_PIN 
       pwmDrive = -1 * pwmDrive;  
    }
-    ledcWrite(0, pwmDrive);  // channel 0 = PWM_PIN
+    ledcWrite(Set.PWM_PIN, pwmDrive);  // channel 0 = PWM_PIN
   }
 
 
@@ -84,16 +87,16 @@ void motorDrive_IBT_Mot(void)
   
   if (pwmDrive > 0)
     {
-      ledcWrite(0, pwmDrive);  // channel 0 = PWM_PIN
-      ledcWrite(1, 0);
+      ledcWrite(Set.PWM_PIN, pwmDrive);  // channel 0 = PWM_PIN
+      ledcWrite(Set.DIR_PIN, 0);
       //digitalWrite(DIR_PIN, LOW);
     }
     
   if (pwmDrive <= 0)
     {
       pwmDrive = -1 * pwmDrive;  
-      ledcWrite(1, pwmDrive);  // channel 1 = DIR_PIN
-      ledcWrite(0, 0);
+      ledcWrite(Set.DIR_PIN, pwmDrive);  // channel 1 = DIR_PIN
+      ledcWrite(Set.PWM_PIN, 0);
       //digitalWrite(PWM_PIN, LOW);
     } 
   }
@@ -112,16 +115,16 @@ void motorDrive_IBT_PWM(void)
   
   if (pwmDrive > 0)
     {
-      ledcWrite(0, pwmDrive);  // channel 0 = PWM_PIN
-      ledcWrite(1, 0);
+      ledcWrite(Set.PWM_PIN, pwmDrive);  // channel 0 = PWM_PIN
+      ledcWrite(Set.DIR_PIN, 0);
       //digitalWrite(DIR_PIN, LOW);
     }
     
   if (pwmDrive <= 0)
     {
       pwmDrive = -1 * pwmDrive;  
-      ledcWrite(1, pwmDrive);  // channel 1 = DIR_PIN
-      ledcWrite(0, 0);
+      ledcWrite(Set.DIR_PIN, pwmDrive);  // channel 1 = DIR_PIN
+      ledcWrite(Set.PWM_PIN, 0);
       //digitalWrite(PWM_PIN, LOW);
     }
  }  
@@ -145,13 +148,13 @@ void motorDrive_IBT_Danfoss(void)
   if (steerEnable) ledcWrite(1, 255);  // channel 1 = DIR_PIN // turn on /off Power
   else 
     {
-      ledcWrite(1, 0);
+      ledcWrite(Set.DIR_PIN, 0);
       pwmDrive=0;
     }
     pwmDrive = pwmDrive / 4;  
     pwmOut = pwmDrive+ 128;  // add Center Pos.
     pwmDisplay = pwmOut;
-    ledcWrite(0, pwmOut);  // channel 0 = PWM_PIN
+    ledcWrite(Set.PWM_PIN, pwmOut);  // channel 0 = PWM_PIN
   }
 
  
