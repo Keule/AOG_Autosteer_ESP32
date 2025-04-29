@@ -1,4 +1,5 @@
 // ESP32 code for autosteer unit for AgOpenGPS
+#include "AOG_Autosteer_ESP32.h"
 
 // ready for AOG V4.3 + V5.x Version
 // PINs for GormR central unit PCB (V1.8) see GitHub https://github.com/GormR/HW_for_AgOpenGPS
@@ -19,9 +20,10 @@ char VersionTXT[120] = " - 16. April 2021 by MTZ8302<br>(V4.3 + V5 ready, CMPS/B
 //to do: 230 not called in V20, steerPostionZero from AOG is ignorred, only zero button in WebIO working 
 
 
-#define useLED_BUILTIN  0	          // some ESP board have a build in LED, some not. Here it's the same funtion as the WiFi LED
+	//-- moved to arduinoGlue.h // #define useLED_BUILTIN  0	          // some ESP board have a build in LED, some not. Here it's the same funtion as the WiFi LED
 
 
+/*				*** struct moved to arduinoGlue.h ***
 struct Storage {
 	//WiFi
 	char ssid1[24] = "Fendt_209V";                // WiFi network Client name
@@ -161,7 +163,8 @@ struct Storage {
 	bool debugmode = false;
 	bool debugmodeDataFromAOG = false;
 
-};  Storage Set;
+};
+*/  Storage Set;
 
 boolean EEPROM_clear = false;  //set to true when changing settings to write them as default values: true -> flash -> boot -> false -> flash again
 
@@ -169,25 +172,25 @@ boolean EEPROM_clear = false;  //set to true when changing settings to write the
 
 //Sentence up to V4.3 -----------------------------------------------------------------------------	
 //steer PGN numbers are the same in V4.3
-#define steerDataSentenceToAOGLengthV17 10
+	//-- moved to arduinoGlue.h // #define steerDataSentenceToAOGLengthV17 10
 
 // sentences to AOG V4.6 and up -------------------------------------------------------------------	
 const byte FromAOGSentenceHeader[3] = { 0x80,0x81,0x7F };
-#define steerDataToAOGHeader  0xFD
-#define steerDataFromAOGHeader  0xFE 
-#define steerArdConfFromAOGHeader 0xFB
-#define steerSettingsFromAOGHeader  0xFC
-#define steerDataSentenceToAOGLength  14
+	//-- moved to arduinoGlue.h // #define steerDataToAOGHeader  0xFD
+	//-- moved to arduinoGlue.h // #define steerDataFromAOGHeader  0xFE 
+	//-- moved to arduinoGlue.h // #define steerArdConfFromAOGHeader 0xFB
+	//-- moved to arduinoGlue.h // #define steerSettingsFromAOGHeader  0xFC
+	//-- moved to arduinoGlue.h // #define steerDataSentenceToAOGLength  14
 
 //global, as serial/USB may not come at once, so values must stay for next loop
 byte incomSentenceDigit = 0,DataToAOGLength;
 bool isSteerDataFound = false, isSteerSettingFound = false, isSteerArdConfFound = false, isSteerArdConfigFound = false;
 bool isSteerDataFoundV17 = false, isSteerSettingFoundV17 = false, isSteerArdConfFoundV17 = false, isSteerArdConfigFoundV17 = false;
 
-#define incommingDataArraySize 5
+	//-- moved to arduinoGlue.h // #define incommingDataArraySize 5
 byte incommingBytes[incommingDataArraySize][500], incommingBytesArrayNr = 0, incommingBytesArrayNrToParse = 0;
 unsigned int incommingDataLength[incommingDataArraySize] = { 0,0,0,0,0 };
-#define SentenceFromAOGMaxLength 14
+	//-- moved to arduinoGlue.h // #define SentenceFromAOGMaxLength 14
 byte SentenceFromAOG[SentenceFromAOGMaxLength], SentenceFromAOGLength;
 
 byte steerToAOG[14] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
@@ -195,18 +198,17 @@ byte steerToAOG[14] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
 //libraries ---------------------------------------------------------------------------------------
 #include "EEPROM.h"
-#include <Update.h>
+//#include <Update.h>                               		//-- moved to arduinoGlue.h
 #include "Wire.h"
 #include "BNO055_AOG.h"
-#include <Adafruit_BNO08x.h>
 #include "zADS1115.h"
 #include "MMA8452_AOG.h"  //MMA inclinometer
-#include <WiFiUdp.h>
-#include <WebServer.h>
-#include <WiFiClient.h>
-#include <WiFi.h>
-#include <ETH.h>
-//#include <EthernetUdp.h>   
+//#include <WiFiUdp.h>                              		//-- moved to arduinoGlue.h
+//#include <WebServer.h>                            		//-- moved to arduinoGlue.h
+//#include <WiFiClient.h>                           		//-- moved to arduinoGlue.h
+//#include <WiFi.h>                                 		//-- moved to arduinoGlue.h
+//#include <Ethernet.h>                             		//-- moved to arduinoGlue.h
+//#include <EthernetUdp.h>                          		//-- moved to arduinoGlue.h
 #include "BNO08x_AOG.h"
 
 // Instances --------------------------------------------------------------------------------------
@@ -217,8 +219,8 @@ BNO055 BNO(0X28);	//I2C address selection pin LOW BNO055
 BNO080 bno08x;
 WiFiUDP WiFiUDPFromAOG;
 WiFiUDP WiFiUDPToAOG;
-WiFiUDP EthUDPToAOG;
-WiFiUDP EthUDPFromAOG;
+EthernetUDP EthUDPToAOG;
+EthernetUDP EthUDPFromAOG;
 WebServer WiFi_Server(80);
 
 TaskHandle_t taskHandle_Eth_connect;
@@ -233,8 +235,8 @@ TaskHandle_t taskHandle_LEDBlink;
 // Variables --------------------------------------------------------------------------------------
 // WiFi status LED blink times: searching WIFI: blinking 4x faster; connected: blinking as times set; data available: light on; no data for 2 seconds: blinking
 unsigned long LED_WIFI_time = 0, DataFromAOGTime = 0;
-#define LED_WIFI_pulse 1000   //light on in ms 
-#define LED_WIFI_pause 700    //light off in ms
+	//-- moved to arduinoGlue.h // #define LED_WIFI_pulse 1000   //light on in ms 
+	//-- moved to arduinoGlue.h // #define LED_WIFI_pause 700    //light off in ms
 boolean LED_WIFI_ON = false;
 
 //WIFI+Ethernet

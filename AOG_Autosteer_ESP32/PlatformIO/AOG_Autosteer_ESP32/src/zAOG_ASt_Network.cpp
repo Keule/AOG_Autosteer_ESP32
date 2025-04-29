@@ -1,4 +1,5 @@
 // WIFI handling 7. Maerz 2021 for ESP32  -------------------------------------------
+#include "zAOG_ASt_Network.h"
 
 void WiFi_handle_connection(void* pvParameters) {
     if (Set.DataTransVia > 10) { vTaskDelay(5000); } //start Ethernet first, if needed for data transfer
@@ -274,11 +275,6 @@ void WiFi_Start_AP() {
 }
 
 
-// z.B. aus deinem Set-Struct, oder hardcoded:
-IPAddress localIP(192, 168, 1, 80);
-IPAddress gateway(192, 168, 1, 1);
-IPAddress subnet(255, 255, 255, 0);
-
 //=================================================================================================
 //Ethernet handling for ESP32 14. Feb 2021
 //-------------------------------------------------------------------------------------------------
@@ -293,26 +289,19 @@ void Eth_handle_connection(void* pvParameters) {
             if (now > Eth_connect_timer + 300) {
                 switch (Eth_connect_step) {
                 case 10:
-                    //Ethernet.init(Set.Eth_CS_PIN);
-                    // für RTL8201 auf T-ETH-Lite:
-                   
+                    Ethernet.init(Set.Eth_CS_PIN);
+                    Eth_connect_step++;
                     break;
                 case 11:
-                    if (Set.Eth_static_IP) { 
-                        ETH.begin(ETH_PHY_RTL8201,0,23,18,-1,ETH_CLOCK_GPIO0_IN);
-                         // Statische IP konfigurieren
-                        ETH.config(localIP, gateway, subnet);
-                        if (Set.debugmode) {Serial.printf("Statische IP: %s\n", ETH.localIP().toString().c_str());}
-                        }
+                    if (Set.Eth_static_IP) { Ethernet.begin(Set.Eth_mac, Set.Eth_myip); }
                     else {
-                       ETH.begin(ETH_PHY_RTL8201,0,23,18,-1,ETH_CLOCK_GPIO0_IN); //use DHCP
+                        Ethernet.begin(Set.Eth_mac); //use DHCP
                         if (Set.debugmode) { Serial.println("waiting for DHCP IP adress"); }
                     }
                     Eth_connect_step++;
-                    if (Set.debugmode) { Serial.printf("Endgültige IP: %s\n", ETH.localIP().toString().c_str());}
                     break;
                 case 12:
-                    if (false ) { //Ethernet.hardwareStatus() == EthernetNoHardware //PHY wird genutzt
+                    if (Ethernet.hardwareStatus() == EthernetNoHardware) {
                         Serial.println("no Ethernet hardware, Data Transfer set to WiFi");
                         Eth_connect_step = 255;//no Ethernet, end Ethernet
                         if (Set.DataTransVia == 10) {
@@ -330,7 +319,7 @@ void Eth_handle_connection(void* pvParameters) {
                     }
                     break;
                 case 13:
-                    if (ETH.linkUp()) {
+                    if (Ethernet.linkStatus() == LinkOFF) {
                         Serial.println("Ethernet cable is not connected. Retrying in 5 Sek.");
                         vTaskDelay(5000);
                     }
@@ -338,31 +327,31 @@ void Eth_handle_connection(void* pvParameters) {
                     break;
                 case 14:
                     Serial.print("Got IP ");
-                    Serial.println(ETH.localIP());
-                    if ((ETH.localIP()[0] == 0) && (ETH.localIP()[1] == 0) && (ETH.localIP()[2] == 0) && (ETH.localIP()[3] == 0)) {
+                    Serial.println(Ethernet.localIP());
+                    if ((Ethernet.localIP()[0] == 0) && (Ethernet.localIP()[1] == 0) && (Ethernet.localIP()[2] == 0) && (Ethernet.localIP()[3] == 0)) {
                         //got IP 0.0.0.0 = no DCHP so use static IP
                         Set.Eth_static_IP = true;
                     }
                     //use DHCP but change IP ending (x.x.x.80)
                     if (!Set.Eth_static_IP) {
                         for (byte n = 0; n < 3; n++) {
-                            Set.Eth_myip[n] = ETH.localIP()[n];
-                            Eth_ipDestination[n] = ETH.localIP()[n];
+                            Set.Eth_myip[n] = Ethernet.localIP()[n];
+                            Eth_ipDestination[n] = Ethernet.localIP()[n];
                         }
                         Eth_ipDestination[3] = 255;
-                        ETH.config(localIP, gateway, subnet);
+                        Ethernet.setLocalIP(Set.Eth_myip);
                     }
                     else {//use static IP
                         for (byte n = 0; n < 3; n++) {
                             Eth_ipDestination[n] = Set.Eth_myip[n];
                         }
                         Eth_ipDestination[3] = Set.Eth_ipDest_ending;
-                        ETH.config(localIP, gateway, subnet);
+                        Ethernet.setLocalIP(Set.Eth_myip);
                     }
                     Eth_connect_step++;
                     break;
                 case 15:
-                    Serial.print("Ethernet IP of autosteer module: "); Serial.println(ETH.localIP());
+                    Serial.print("Ethernet IP of autosteer module: "); Serial.println(Ethernet.localIP());
                     Serial.print("Ethernet sending to IP: "); Serial.println(Eth_ipDestination);
                     //init UPD Port sending to AOG
                     if (EthUDPToAOG.begin(Set.PortAutostToAOG))
@@ -399,4 +388,3 @@ void Eth_handle_connection(void* pvParameters) {
         vTaskDelay(320);
     }
 }
-

@@ -1,4 +1,5 @@
 //getData 7. Maerz 2021
+#include "zAOG_ASt_Comm.h"
 void getDataFromAOGUSB(void* pvParameters)
 {
 	byte nextincommingBytesArrayNr;
@@ -52,31 +53,6 @@ void getDataFromAOGWiFi(void* pvParameters)
 //-------------------------------------------------------------------------------------------------
 
 
-// void getDataFromAOGEth(void* pvParameters)
-// {
-// 	byte nextincommingBytesArrayNr;
-// 	unsigned int packetLength;
-
-// 	EthDataTaskRunning = true;
-
-// 	for (;;) {
-// 		if (!EthUDPRunning) { vTaskDelay(3000); }
-// 		else { break; }
-// 	}
-// 	if (Set.debugmode) { Serial.println("started Task get Data via Ethernet"); }
-// 	for (;;) {
-// 		//get Data		
-// 		packetLength = EthUDPFromAOG.parsePacket();
-// 		if (packetLength) {
-// 			nextincommingBytesArrayNr = (incommingBytesArrayNr + 1) % incommingDataArraySize;
-// 			EthUDPFromAOG.read(incommingBytes[nextincommingBytesArrayNr], packetLength);
-// 			incommingBytesArrayNr = nextincommingBytesArrayNr;
-// 			incommingDataLength[incommingBytesArrayNr] = packetLength;
-// 		}
-// 		else { vTaskDelay(10); }
-// 	}
-// }
-
 void getDataFromAOGEth(void* pvParameters)
 {
 	byte nextincommingBytesArrayNr;
@@ -88,20 +64,20 @@ void getDataFromAOGEth(void* pvParameters)
 		if (!EthUDPRunning) { vTaskDelay(3000); }
 		else { break; }
 	}
-	if (Set.debugmode) { Serial.println("started Task get Data via Eth"); }
+	if (Set.debugmode) { Serial.println("started Task get Data via Ethernet"); }
 	for (;;) {
-		//get Data
+		//get Data		
 		packetLength = EthUDPFromAOG.parsePacket();
-		if (packetLength > 0) {
+		if (packetLength) {
 			nextincommingBytesArrayNr = (incommingBytesArrayNr + 1) % incommingDataArraySize;
 			EthUDPFromAOG.read(incommingBytes[nextincommingBytesArrayNr], packetLength);
 			incommingBytesArrayNr = nextincommingBytesArrayNr;
 			incommingDataLength[incommingBytesArrayNr] = packetLength;
-			//Serial.println("got Data");
 		}
 		else { vTaskDelay(10); }
 	}
 }
+
 //-------------------------------------------------------------------------------------------------
 //parseData 7. Maerz 2021
 
