@@ -30,17 +30,17 @@ struct Storage {
 	uint16_t timeoutRouter = 120;                 // time (seconds) to wait for WIFI access, after that own Access Point starts
 	byte timeoutWebIO = 255;                      // time (min) afterwards webinterface is switched off
 
-	byte WiFi_myip[4] = { 192, 168, 1, 77 };      // autosteer module 
-	byte WiFi_gwip[4] = { 192, 168, 1, 1 };       // Gateway IP only used if Accesspoint created
+	byte WiFi_myip[4] = { 192, 168, 3, 77 };      // autosteer module 
+	byte WiFi_gwip[4] = { 192, 168, 3, 1 };       // Gateway IP only used if Accesspoint created
 	byte WiFi_ipDest_ending = 255;                // ending of IP address to send UDP data to
 	byte mask[4] = { 255, 255, 255, 0 };
 	byte myDNS[4] = { 8, 8, 8, 8 };               //optional
 
 	//Ethernet
-	byte Eth_myip[4] = { 192, 168, 1, 78 };       // autosteer module 
+	byte Eth_myip[4] = { 192, 168, 3, 78 };       // autosteer module 
 	byte Eth_ipDest_ending = 255;                 // ending of IP address to send UDP data to
 	byte Eth_mac[6] = { 0x70,0x69,0x69,0x2D,0x30,0x31 };
-	bool Eth_static_IP = false;					          // false = use DHPC and set last number to 80 (x.x.x.80) / true = use IP as set above
+	bool Eth_static_IP = true;					          // false = use DHPC and set last number to 80 (x.x.x.80) / true = use IP as set above
 
 	unsigned int PortAutostToAOG = 5577;          // this is port of this module: Autosteer = 5577 IMU = 5566 GPS = 
 	unsigned int PortFromAOG = 8888;              // port to listen for AOG
@@ -49,7 +49,7 @@ struct Storage {
 	//general settings
 	uint8_t aogVersion = 20;			                // Version number for version check 4.3.10 = 4+3+10 = 17	
 
-	byte DataTransVia = 7;                        // transfer data via 0 = USB / 7 = WiFi UDP / 10 = Ethernet UDP
+	byte DataTransVia = 10;                        // transfer data via 0 = USB / 7 = WiFi UDP / 10 = Ethernet UDP
 
 	uint8_t output_type = 2;                      // set to 1  if you want to use Stering Motor + Cytron MD30C Driver
 																// set to 2  if you want to use Stering Motor + IBT 2  Driver
@@ -67,7 +67,7 @@ struct Storage {
 																// 1 = Single Mode of ADS1115 - Sensor Signal at A0 (ADS)
 																// 2 = Differential Mode - Connect Sensor GND to A1, Signal to A0
 
-	uint8_t IMUType = 0;                          // 0: none, 1: BNO055 IMU, 2: CMPS14, 3: BNO080 + BNO085
+	uint8_t IMUType = 3;                          // 0: none, 1: BNO055 IMU, 2: CMPS14, 3: BNO080 + BNO085
 
 	//CMPS14	
 	int CMPS14_ADDRESS = 0x60;                    // Address of CMPS14 shifted right one bit for arduino wire library
@@ -114,12 +114,8 @@ struct Storage {
 
 	// IO pins ------------------------------------------------------------------
 
-	// set to 255 for unused !!!!!
-	uint8_t SDA = 21;	                  // I2C Pins
-	uint8_t SCL = 22;
-
-	uint8_t AutosteerLED_PIN = 2;       // light on active autosteer and IBT2
-	uint8_t LEDWiFi_PIN = 0;            // light on WiFi connected, flashes on searching Network. If GPIO 0 is used LED must be activ LOW otherwise ESP won't boot
+	uint8_t AutosteerLED_PIN = 5;       // light on active autosteer and IBT2
+	uint8_t LEDWiFi_PIN = 5;            // light on WiFi connected, flashes on searching Network. If GPIO 0 is used LED must be activ LOW otherwise ESP won't boot
 	uint8_t LEDWiFi_ON_Level = LOW;	    // HIGH = LED on high, LOW = LED on low
 
 										// (not supported at the moment) relais for section control
@@ -131,7 +127,7 @@ struct Storage {
 	uint8_t WAS_Diff_GND_PIN = 39;
 	uint8_t WORKSW_PIN = 33;            // PIN for workswitch (can be analog or on/off switch see WorkSW_mode)
 	uint8_t STEERSW_PIN = 34;           // Pin for steer button or switch (see SteerSwitchType)
-	uint8_t encA_PIN = 4;               // Pin for steer encoder, to turn off autosteer if steering wheel is used
+	uint8_t encA_PIN = 5;               // Pin for steer encoder, to turn off autosteer if steering wheel is used
 	uint8_t encB_PIN = 32;              // Pin for steer encoder, to turn off autosteer if steering wheel is used
 
 	uint8_t Servo_PIN = 16;			        // (not supported at the moment) Pin for servo to pull motor to steering wheel
@@ -140,7 +136,7 @@ struct Storage {
 	uint8_t DIR_PIN = 26;               // direction output to motor controller (IBT2 or cytron)
 	uint8_t Current_sens_PIN = 35;	    // (not supported at the moment) current sensor for IBT2 to read the force needed to turn steering wheel
 
-	uint8_t Eth_CS_PIN = 5;             // CS PIN with SPI Ethernet hardware  SPI config: MOSI 23 / MISO 19 / CLK18 / CS5
+	// uint8_t Eth_CS_PIN = 5;             // CS PIN with SPI Ethernet hardware  SPI config: MOSI 23 / MISO 19 / CLK18 / CS5
 
 	uint8_t CAN_RX_PIN = 25;		        // (not supported at the moment) CAN bus 
 	uint8_t CAN_TX_PIN = 17;		        // (not supported at the moment)
@@ -158,7 +154,7 @@ struct Storage {
 	uint16_t roll_corr = 200;
 	byte minPWM = 40, highPWM = 150, lowPWM = 60;
 
-	bool debugmode = false;
+	bool debugmode = true;
 	bool debugmodeDataFromAOG = false;
 
 };  Storage Set;
@@ -196,13 +192,30 @@ byte steerToAOG[14] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 //libraries ---------------------------------------------------------------------------------------
 #include "EEPROM.h"
 #include <Update.h>
-#include "Wire.h"
+// #include "Wire.h"
 #include <WiFiUdp.h>
 #include <WebServer.h>
 #include <WiFiClient.h>
 #include <WiFi.h>
+#if ESP_ARDUINO_VERSION < ESP_ARDUINO_VERSION_VAL(3,0,0)
+#include <ETHClass2.h>       //Is to use the modified ETHClass
+#define ETH  ETH2
+#else
 #include <ETH.h>
+#endif
 #include "BNO08x_AOG.h"
+
+#define ETH_TYPE                        ETH_PHY_RTL8201
+#define ETH_ADDR                        0
+#define ETH_CLK_MODE                    ETH_CLOCK_GPIO0_IN
+#define ETH_RESET_PIN                   -1
+#define ETH_MDC_PIN                     23
+#define ETH_POWER_PIN                   12
+#define ETH_MDIO_PIN                    18
+#define SD_MISO_PIN                     34
+#define SD_MOSI_PIN                     13
+#define SD_SCLK_PIN                     14
+#define SD_CS_PIN                       5
 
 // Instances --------------------------------------------------------------------------------------
 //ADS1115_lite adc(ADS1115_DEFAULT_ADDRESS);     // Use this for the 16-bit version ADS1115
@@ -283,8 +296,45 @@ float pValue = 0;// iValue = 0, dValue = 0;drive = 0,
 byte SectGrFromAOG[2] = { 0,0 }, Tram = 0;
 
 //webpage
+static bool eth_connected = false;
 long argVal = 0;
 
+void WiFiEvent(arduino_event_id_t event)
+{
+    switch (event) {
+    case ARDUINO_EVENT_ETH_START:
+        Serial.println("ETH Started");
+        //set eth hostname here
+        ETH.setHostname("ESP32_IMU");
+        break;
+    case ARDUINO_EVENT_ETH_CONNECTED:
+        Serial.println("ETH Connected");
+        break;
+    case ARDUINO_EVENT_ETH_GOT_IP:
+        Serial.print("ETH MAC: ");
+        Serial.print(ETH.macAddress());
+        Serial.print(", IPv4: ");
+        Serial.print(ETH.localIP());
+        if (ETH.fullDuplex()) {
+            Serial.print(", FULL_DUPLEX");
+        }
+        Serial.print(", ");
+        Serial.print(ETH.linkSpeed());
+        Serial.println("Mbps");
+        eth_connected = true;
+        break;
+    case ARDUINO_EVENT_ETH_DISCONNECTED:
+        Serial.println("ETH Disconnected");
+        eth_connected = false;
+        break;
+    case ARDUINO_EVENT_ETH_STOP:
+        Serial.println("ETH Stopped");
+        eth_connected = false;
+        break;
+    default:
+        break;
+    }
+}
 
 
 // Setup procedure -----------------------------------------------------------------------------------------------
@@ -322,14 +372,15 @@ void setup() {
 	//set GPIOs
 	assignGPIOs_start_extHardware();
 	delay(200);
-
-    //start Ethernet
-    if (Set.DataTransVia == 10) {
-        Eth_connect_step = 10;
-        xTaskCreate(Eth_handle_connection, "EthConnectHandle", 3072, NULL, 1, &taskHandle_Eth_connect);
-        delay(500);
-    }
-    else { Eth_connect_step = 255; }
+	//start Wifi/Eth Event Handler
+	WiFi.onEvent(WiFiEvent);
+	//start Ethernet
+	if (Set.DataTransVia == 10) {
+			Eth_connect_step = 10;
+			xTaskCreate(Eth_handle_connection, "EthConnectHandle", 3072, NULL, 1, &taskHandle_Eth_connect);
+			delay(500);
+	}
+	//else { Eth_connect_step = 255; }
         
 	WiFi_connect_step = 10;//step 10 = begin of starting a WiFi connection
 
@@ -499,7 +550,7 @@ void loop() {
 	{
 		WASLoopLastTime = now;
 
-		SetRelays(); //turn on off sections, do in timed loop, if new data comes in
+		// SetRelays(); //turn on off sections, do in timed loop, if new data comes in
 		
 		encDebounce = LOW; //reset steerEncoder debounce
 
@@ -707,44 +758,45 @@ void loop() {
 				break;
 
 			case 2://CMPS14			
-				Wire.beginTransmission(Set.CMPS14_ADDRESS);
-				Wire.write(0x02);
-				Wire.endTransmission();
+				// Wire.beginTransmission(Set.CMPS14_ADDRESS);
+				// Wire.write(0x02);
+				// Wire.endTransmission();
 
-				Wire.requestFrom(Set.CMPS14_ADDRESS, 2);
-				while (Wire.available() < 2);
+				// Wire.requestFrom(Set.CMPS14_ADDRESS, 2);
+				// while (Wire.available() < 2);
 
-				//the heading16 x10
-				steerToAOG[8] = Wire.read();
-				steerToAOG[7] = Wire.read();
-				//convert to float for WebIO
-				heading16 = steerToAOG[8];
-				heading16 <<= 8;
-				heading16 += steerToAOG[7];
-				heading = float(heading16) * 0.1;
+				// //the heading16 x10
+				// steerToAOG[8] = Wire.read();
+				// steerToAOG[7] = Wire.read();
+				// //convert to float for WebIO
+				// heading16 = steerToAOG[8];
+				// heading16 <<= 8;
+				// heading16 += steerToAOG[7];
+				// heading = float(heading16) * 0.1;
 
-				Wire.beginTransmission(Set.CMPS14_ADDRESS);
-				Wire.write(0x1C);
-				Wire.endTransmission();
+				// Wire.beginTransmission(Set.CMPS14_ADDRESS);
+				// Wire.write(0x1C);
+				// Wire.endTransmission();
 
-				Wire.requestFrom(Set.CMPS14_ADDRESS, 2);
-				while (Wire.available() < 2);
+				// Wire.requestFrom(Set.CMPS14_ADDRESS, 2);
+				// while (Wire.available() < 2);
 
-				//the roll x10
-				steerToAOG[10] = Wire.read();
-				steerToAOG[9] = Wire.read();
-				//convert to float for WebIO
-				roll16 = steerToAOG[10];
-				roll16 <<= 8;
-				roll16 += steerToAOG[9];
-				roll = float(roll16) * 0.1;
-				//if (bitRead(roll16, 15)) { roll -= 6554; }
-				if (Set.InvertRoll) { roll *= -1; }//affects only number shown in Webinterface
+				// //the roll x10
+				// steerToAOG[10] = Wire.read();
+				// steerToAOG[9] = Wire.read();
+				// //convert to float for WebIO
+				// roll16 = steerToAOG[10];
+				// roll16 <<= 8;
+				// roll16 += steerToAOG[9];
+				// roll = float(roll16) * 0.1;
+				// //if (bitRead(roll16, 15)) { roll -= 6554; }
+				// if (Set.InvertRoll) { roll *= -1; }//affects only number shown in Webinterface
 				break;
 
 			case 3:
-				if (bno08x.dataAvailable() == false) { vTaskDelay(2); }//wait 2ms if no new data from BNO			
-				if (bno08x.dataAvailable() == true)
+				// if (bno08x.dataAvailable() == false) { vTaskDelay(2); }//wait 2ms if no new data from BNO			
+				// if (bno08x.dataAvailable() == true)
+				if (bno08x.dataAvailable()== true) 
 				{
 					bno08xHeading = (bno08x.getYaw()) * 180.0 / PI; // Convert yaw / heading16 to degrees
 					bno08xHeading = -bno08xHeading; //BNO085 counter clockwise data to clockwise data
@@ -864,6 +916,10 @@ void loop() {
 			}
 			else {//Ethernet
 				if (EthUDPRunning) {
+					if (Set.debugmode) {
+						Serial.println("Sending steering UDP packet:");
+						for(uint8_t i=0; i<sizeof(steerToAOG); i++){Serial.print(steerToAOG[i]);}
+					}
 					EthUDPToAOG.beginPacket(Eth_ipDestination, Set.PortDestination);
 					EthUDPToAOG.write(steerToAOG, sizeof(steerToAOG));
 					EthUDPToAOG.endPacket();

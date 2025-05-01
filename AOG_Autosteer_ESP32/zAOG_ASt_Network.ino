@@ -273,12 +273,6 @@ void WiFi_Start_AP() {
     my_WiFi_Mode = WIFI_AP;
 }
 
-
-// z.B. aus deinem Set-Struct, oder hardcoded:
-IPAddress localIP(192, 168, 1, 80);
-IPAddress gateway(192, 168, 1, 1);
-IPAddress subnet(255, 255, 255, 0);
-
 //=================================================================================================
 //Ethernet handling for ESP32 14. Feb 2021
 //-------------------------------------------------------------------------------------------------
@@ -286,6 +280,10 @@ void Eth_handle_connection(void* pvParameters) {
     unsigned long Eth_connect_timer = 0, now = 0;
     if (Set.timeoutRouter < 12) { if (WiFi_connect_step != 0) { vTaskDelay(18000); } }//waiting for WiFi to start first
     Serial.println("started new task: Ethernet handle connection");
+    IPAddress staticIP(192, 168, 3, 72);
+    IPAddress gateway(192, 168, 3, 2);
+    IPAddress subnet(255, 255, 255, 0);
+    IPAddress dns(8, 8, 8, 8);
     for (;;) { // MAIN LOOP
         now = millis();
         if (Set.debugmode) { Serial.print("Ethernet connection step: "); Serial.println(Eth_connect_step); }
@@ -293,26 +291,42 @@ void Eth_handle_connection(void* pvParameters) {
             if (now > Eth_connect_timer + 300) {
                 switch (Eth_connect_step) {
                 case 10:
-                    //Ethernet.init(Set.Eth_CS_PIN);
-                    // für RTL8201 auf T-ETH-Lite:
-                   
+                    //Change to IP and DNS corresponding to your network, gateway
+                    #ifdef ETH_POWER_PIN
+                            pinMode(ETH_POWER_PIN, OUTPUT);
+                            digitalWrite(ETH_POWER_PIN, HIGH);
+                    #endif
+
+                    #if CONFIG_IDF_TARGET_ESP32
+                            if (!ETH.begin(ETH_TYPE, ETH_ADDR, ETH_MDC_PIN,
+                                                        ETH_MDIO_PIN, ETH_RESET_PIN, ETH_CLK_MODE)) {
+                                    Serial.println("ETH start Failed!");
+                            }
+                    #else
+                            if (!ETH.begin(ETH_PHY_W5500, 1, ETH_CS_PIN, ETH_INT_PIN, ETH_RST_PIN,
+                                                        SPI3_HOST,
+                                                        ETH_SCLK_PIN, ETH_MISO_PIN, ETH_MOSI_PIN)) {
+                                    Serial.println("ETH start Failed!");
+                            }
+                    #endif
+                    if (Set.debugmode) { Serial.println("RTL8201 initialized"); }
+                         // Statische IP konfigurieren
+                    Eth_connect_step++;
                     break;
                 case 11:
                     if (Set.Eth_static_IP) { 
-                        ETH.begin(ETH_PHY_RTL8201,0,23,18,-1,ETH_CLOCK_GPIO0_IN);
-                         // Statische IP konfigurieren
-                        ETH.config(localIP, gateway, subnet);
-                        if (Set.debugmode) {Serial.printf("Statische IP: %s\n", ETH.localIP().toString().c_str());}
+                        if (ETH.config(staticIP, gateway, subnet, dns, dns) == false) {
+                            Serial.println("Configuration failed.");}
                         }
                     else {
-                       ETH.begin(ETH_PHY_RTL8201,0,23,18,-1,ETH_CLOCK_GPIO0_IN); //use DHCP
+                       ETH.begin(ETH_TYPE, ETH_ADDR, ETH_MDC_PIN,ETH_MDIO_PIN, ETH_RESET_PIN, ETH_CLK_MODE); //use DHCP
                         if (Set.debugmode) { Serial.println("waiting for DHCP IP adress"); }
                     }
                     Eth_connect_step++;
                     if (Set.debugmode) { Serial.printf("Endgültige IP: %s\n", ETH.localIP().toString().c_str());}
                     break;
                 case 12:
-                    if (false ) { //Ethernet.hardwareStatus() == EthernetNoHardware //PHY wird genutzt
+                    if (ETH.localIP()[0] == 0 ) { //Ethernet.hardwareStatus() == EthernetNoHardware //PHY wird genutzt
                         Serial.println("no Ethernet hardware, Data Transfer set to WiFi");
                         Eth_connect_step = 255;//no Ethernet, end Ethernet
                         if (Set.DataTransVia == 10) {
@@ -330,7 +344,7 @@ void Eth_handle_connection(void* pvParameters) {
                     }
                     break;
                 case 13:
-                    if (ETH.linkUp()) {
+                    if (!ETH.linkUp()) {
                         Serial.println("Ethernet cable is not connected. Retrying in 5 Sek.");
                         vTaskDelay(5000);
                     }
@@ -350,14 +364,14 @@ void Eth_handle_connection(void* pvParameters) {
                             Eth_ipDestination[n] = ETH.localIP()[n];
                         }
                         Eth_ipDestination[3] = 255;
-                        ETH.config(localIP, gateway, subnet);
+                        ETH.config(Set.Eth_myip, gateway, subnet);
                     }
                     else {//use static IP
                         for (byte n = 0; n < 3; n++) {
                             Eth_ipDestination[n] = Set.Eth_myip[n];
                         }
                         Eth_ipDestination[3] = Set.Eth_ipDest_ending;
-                        ETH.config(localIP, gateway, subnet);
+                        ETH.config(Set.Eth_myip, gateway, subnet);
                     }
                     Eth_connect_step++;
                     break;
@@ -399,4 +413,6 @@ void Eth_handle_connection(void* pvParameters) {
         vTaskDelay(320);
     }
 }
+
+
 

@@ -36,7 +36,7 @@
 #include "WProgram.h"
 #endif
 
-#include <Wire.h>
+// #include <Wire.h>
 #include <SPI.h>
 
 //The default I2C address for the BNO080 on the SparkX breakout is 0x4B. 0x4A is also possible.
@@ -46,17 +46,17 @@
 
 //Define the size of the I2C buffer based on the platform the user has
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
+// #if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
 
-//I2C_BUFFER_LENGTH is defined in Wire.H
-#define I2C_BUFFER_LENGTH BUFFER_LENGTH
+// //I2C_BUFFER_LENGTH is defined in Wire.H
+// #define I2C_BUFFER_LENGTH BUFFER_LENGTH
 
-#else
+// #else
 
-//The catch-all default is 32
-#define I2C_BUFFER_LENGTH 32
+// //The catch-all default is 32
+// #define I2C_BUFFER_LENGTH 32
 
-#endif
+// #endif
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //Registers
@@ -132,8 +132,7 @@ const byte CHANNEL_GYRO = 5;
 class BNO080
 {
 public:
-	boolean begin(uint8_t deviceAddress = BNO080_DEFAULT_ADDRESS, TwoWire &wirePort = Wire, uint8_t intPin = 255); //By default use the default I2C addres, and use Wire port, and don't declare an INT pin
-	boolean beginSPI(uint8_t user_CSPin, uint8_t user_WAKPin, uint8_t user_INTPin, uint8_t user_RSTPin, uint32_t spiPortSpeed = 3000000, SPIClass &spiPort = SPI);
+	boolean beginSPI(uint8_t user_CSPin, uint8_t user_INTPin, uint8_t user_RSTPin, uint32_t spiPortSpeed = 3000000, SPIClass &spiPort = SPI);
 
 	void enableDebugging(Stream &debugPort = Serial); //Turn on debug printing. If user doesn't specify then Serial will be used.
 
@@ -142,10 +141,8 @@ public:
 
 	float qToFloat(int16_t fixedPointValue, uint8_t qPoint); //Given a Q value, converts fixed point floating to regular floating point number
 
-	boolean waitForI2C(); //Delay based polling for I2C traffic
 	boolean waitForSPI(); //Delay based polling for INT pin to go low
 	boolean receivePacket(void);
-	boolean getData(uint16_t bytesRemaining); //Given a number of bytes, send the requests in I2C_BUFFER_LENGTH chunks
 	boolean sendPacket(uint8_t channelNumber, uint8_t dataLength);
 	void printPacket(void); //Prints the current shtp header and data packets
 	void printHeader(void); //Prints the current shtp header (only)
@@ -263,7 +260,6 @@ public:
 
 private:
 	//Variables
-	TwoWire *_i2cPort;		//The generic connection to user's chosen I2C hardware
 	uint8_t _deviceAddress; //Keeps track of I2C address. setI2CAddress changes this.
 
 	Stream *_debugPort;			 //The stream to send debug messages to if enabled. Usually Serial.

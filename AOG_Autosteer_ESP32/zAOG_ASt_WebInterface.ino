@@ -183,13 +183,13 @@ void process_Request()
 		if (WiFi_Server.argName(n) == "DataTransfVia") {
 			temInt = WiFi_Server.arg(n).toInt();
 			if ((temInt <= 20) && (temInt >= 0)) { Set.DataTransVia = byte(temInt); }
-			if (Set.DataTransVia == 10) {
-				if (Eth_connect_step == 255) {
-					Eth_connect_step = 10;
-					xTaskCreate(Eth_handle_connection, "Core1EthConnectHandle", 3072, NULL, 1, &taskHandle_Eth_connect);
-					delay(500);
-				}
-			}
+			// if (Set.DataTransVia == 10) {
+			// 	if (Eth_connect_step == 255) {
+			// 		Eth_connect_step = 10;
+			// 		xTaskCreate(Eth_handle_connection, "Core1EthConnectHandle", 3072, NULL, 1, &taskHandle_Eth_connect);
+			// 		delay(500);
+			// 	}
+			// }
 			if (Set.DataTransVia < 5) {//USB
 				if (!USBDataTaskRunning) {
 					xTaskCreate(getDataFromAOGUSB, "DataFromAOGHandleUSB", 5000, NULL, 1, &taskHandle_DataFromAOGUSB);
